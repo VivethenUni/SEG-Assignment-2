@@ -1,3 +1,4 @@
+// Assignment 2 Done By Vivethen Balachandiran (ID: 300245080)
 // This file contains material supporting section 3.7 of the textbook:
 // "Object Oriented Software Engineering" and is issued under the open-source
 // license found at www.lloseng.com 
@@ -50,18 +51,17 @@ public class ClientConsole implements ChatIF
    * @param host The host to connect to.
    * @param port The port to connect on.
    */
-  public ClientConsole(String host, int port) 
+  public ClientConsole(String loginID, String host, int port) 
   {
     try 
     {
-      client= new ChatClient(host, port, this);
+      client= new ChatClient(loginID, host, port, this);
       
       
     } 
     catch(IOException exception) 
     {
-      System.out.println("Error: Can't setup connection!"
-                + " Terminating client.");
+      System.out.println("ERROR - Can't setup connection! Terminating client.");
       System.exit(1);
     }
     
@@ -76,11 +76,13 @@ public class ClientConsole implements ChatIF
    * This method waits for input from the console.  Once it is 
    * received, it sends it to the client's message handler.
    */
-  public void accept() 
+  public void accept() throws IOException 
   {
     try
     {
-
+      if (client.isConnected()){
+        client.sendToServer("#login "+ client.getLoginID());
+      }
       String message;
 
       while (true) 
@@ -93,6 +95,7 @@ public class ClientConsole implements ChatIF
     {
       System.out.println
         ("Unexpected error while reading from console!");
+        ex.printStackTrace();
     }
   }
 
@@ -115,16 +118,24 @@ public class ClientConsole implements ChatIF
    *
    * @param args[0] The host to connect to.
    */
-  public static void main(String[] args) 
+  public static void main(String[] args) throws IOException
   {
     String host = "";
     int port = 0;
+    String loginID = "";
 
+    try {
+      loginID = args[0];
+    }
+    catch (ArrayIndexOutOfBoundsException e) {
+      System.out.println("ERROR - No login ID specified.  Connection aborted.");
+      System.exit(1);
+    }
 
     try
     {
-      host = args[0];
-      port = Integer.parseInt(args[1]);
+      host = args[1]; //originally 0
+      port = Integer.parseInt(args[2]); //originally 1
     }
     catch(ArrayIndexOutOfBoundsException e)
     {
@@ -134,7 +145,7 @@ public class ClientConsole implements ChatIF
     catch(NumberFormatException ne) {
       port = DEFAULT_PORT;
     }
-    ClientConsole chat= new ClientConsole(host, port);
+    ClientConsole chat= new ClientConsole(loginID, host, port);
     chat.accept();  //Wait for console data
   }
 }

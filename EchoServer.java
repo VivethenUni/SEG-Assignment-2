@@ -1,3 +1,4 @@
+// Assignment 2 Done By Vivethen Balachandiran (ID: 300245080)
 // This file contains material supporting section 3.7 of the textbook:
 // "Object Oriented Software Engineering" and is issued under the open-source
 // license found at www.lloseng.com 
@@ -23,6 +24,8 @@ public class EchoServer extends AbstractServer
    * The default port to listen on.
    */
   final public static int DEFAULT_PORT = 5555;
+
+  String loginKey = "loginID";
   
   //Constructors ****************************************************
   
@@ -48,8 +51,22 @@ public class EchoServer extends AbstractServer
   public void handleMessageFromClient
     (Object msg, ConnectionToClient client)
   {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+    String msgStr = (String)msg;
+    if (msgStr.startsWith("#login")) {
+      String[] commandParams = msgStr.split(" ");
+      String ID = commandParams[1];
+      System.out.println("Message received: " + msg + " from " + client.getInfo(loginKey));
+      System.out.println(ID + " has logged on.");
+      this.sendToAllClients(ID + " has logged on.");
+      client.setInfo(loginKey, ID);
+    }
+    else {
+      System.out.println("The following message: '" 
+                + msgStr.substring(msgStr.indexOf('>') + 2)
+                + "' was recieved from "
+                + client.getInfo(loginKey));
+      this.sendToAllClients(msg);
+    }
   }
     
   /**
@@ -79,7 +96,7 @@ public class EchoServer extends AbstractServer
    */
   @Override
   protected void clientConnected(ConnectionToClient client) {
-    System.out.println("Welcome to the server");
+    System.out.println("A new client has connected to the server.");
   }
 
   /**
@@ -92,8 +109,14 @@ public class EchoServer extends AbstractServer
   @Override
   synchronized protected void clientDisconnected(
     ConnectionToClient client) {
-      System.out.println("Thank you for using this server. Goodbye");
+      System.out.println(client.getInfo(loginKey) + " has disconnected.");
     }
+  
+  @Override
+  synchronized protected void clientException(
+    ConnectionToClient client, Throwable exception) {
+      System.out.println("A client has disconnected.");
+  }
 
   //Class methods ***************************************************
   
